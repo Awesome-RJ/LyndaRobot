@@ -39,24 +39,23 @@ def report_setting(update: Update, context: CallbackContext):
             msg.reply_text("Your current report preference is: `{}`".format(
                 sql.user_should_report(chat.id)), parse_mode=ParseMode.MARKDOWN)
 
-    else:
-        if len(args) >= 1:
-            if args[0] in ("yes", "on"):
-                sql.set_chat_setting(chat.id, True)
-                msg.reply_text(
-                    "Turned on reporting! Admins who have turned on reports will be notified when /report "
-                    "or @admin are called.")
-
-            elif args[0] in ("no", "off"):
-                sql.set_chat_setting(chat.id, False)
-                msg.reply_text(
-                    "Turned off reporting! No admins will be notified on /report or @admin.")
-        else:
+    elif len(args) >= 1:
+        if args[0] in ("yes", "on"):
+            sql.set_chat_setting(chat.id, True)
             msg.reply_text(
-                "This chat's current setting is: `{}`".format(
-                    sql.chat_should_report(
-                        chat.id)),
-                parse_mode=ParseMode.MARKDOWN)
+                "Turned on reporting! Admins who have turned on reports will be notified when /report "
+                "or @admin are called.")
+
+        elif args[0] in ("no", "off"):
+            sql.set_chat_setting(chat.id, False)
+            msg.reply_text(
+                "Turned off reporting! No admins will be notified on /report or @admin.")
+    else:
+        msg.reply_text(
+            "This chat's current setting is: `{}`".format(
+                sql.chat_should_report(
+                    chat.id)),
+            parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async

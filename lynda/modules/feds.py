@@ -371,11 +371,10 @@ def user_demote_fed(update: Update, context: CallbackContext):
 
 @run_async
 def fed_info(update: Update, context: CallbackContext):
-    args = context.args
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
-    if args:
+    if args := context.args:
         fed_id = args[0]
     else:
         fed_id = sql.get_fed_id(chat.id)
@@ -392,7 +391,7 @@ def fed_info(update: Update, context: CallbackContext):
 
     owner = context.bot.get_chat(info['owner'])
     try:
-        owner_name = owner.first_name + " " + owner.last_name
+        owner_name = f'{owner.first_name} {owner.last_name}'
     except BaseException as e:
         print(e)
         owner_name = owner.first_name
@@ -448,7 +447,7 @@ def fed_admin(update: Update, context: CallbackContext):
     text += "👑 Owner:\n"
     owner = context.bot.get_chat(info['owner'])
     try:
-        owner_name = owner.first_name + " " + owner.last_name
+        owner_name = f'{owner.first_name} {owner.last_name}'
     except BaseException:
         owner_name = owner.first_name
     text += " - {}\n".format(mention_html(owner.id, owner_name))

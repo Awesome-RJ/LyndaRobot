@@ -63,8 +63,7 @@ if is_module_loaded(FILENAME):
                     ):
                         return None
 
-                    filter_result = self.filters(update)
-                    if filter_result:
+                    if filter_result := self.filters(update):
                         chat = update.effective_chat
                         user = update.effective_user
                         # disabled, admincmd, user admin
@@ -73,11 +72,7 @@ if is_module_loaded(FILENAME):
                             is_disabled = command[
                                 0] in ADMIN_CMDS and is_user_admin(
                                     chat, user.id)
-                            if not is_disabled:
-                                return None
-                            else:
-                                return args, filter_result
-
+                            return (args, filter_result) if is_disabled else None
                         return args, filter_result
                     else:
                         return False
@@ -280,9 +275,11 @@ if is_module_loaded(FILENAME):
     @user_admin
     def list_cmds(update: Update, context: CallbackContext):
         if DISABLE_CMDS + DISABLE_OTHER:
-            result = ""
-            for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
-                result += f" - `{escape_markdown(cmd)}`\n"
+            result = "".join(
+                f" - `{escape_markdown(cmd)}`\n"
+                for cmd in set(DISABLE_CMDS + DISABLE_OTHER)
+            )
+
             update.effective_message.reply_text(
                 f"The following commands are toggleable:\n{result}",
                 parse_mode=ParseMode.MARKDOWN)
@@ -295,9 +292,7 @@ if is_module_loaded(FILENAME):
         if not disabled:
             return "No commands are disabled!"
 
-        result = ""
-        for cmd in disabled:
-            result += " - `{}`\n".format(escape_markdown(cmd))
+        result = "".join(" - `{}`\n".format(escape_markdown(cmd)) for cmd in disabled)
         return "The following commands are currently restricted:\n{}".format(
             result)
 

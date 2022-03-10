@@ -46,9 +46,7 @@ def get_id(update: Update, context: CallbackContext):
     bot = context.bot
     message = update.effective_message
     msg = update.effective_message
-    user_id = extract_user(msg, args)
-
-    if user_id:
+    if user_id := extract_user(msg, args):
         if msg.reply_to_message and msg.reply_to_message.forward_from:
 
             user1 = message.reply_to_message.from_user
@@ -69,7 +67,6 @@ def get_id(update: Update, context: CallbackContext):
                 parse_mode=ParseMode.HTML)
 
     else:
-
         chat = update.effective_chat
         if chat.type == "private":
             msg.reply_text(f"Your id is <code>{chat.id}</code>.",
@@ -98,9 +95,7 @@ def info(update: Update, context: CallbackContext):
     args = context.args
     message = update.effective_message
     chat = update.effective_chat
-    user_id = extract_user(update.effective_message, args)
-
-    if user_id:
+    if user_id := extract_user(update.effective_message, args):
         user = bot.get_chat(user_id)
 
     elif not message.reply_to_message and not args:
@@ -148,17 +143,23 @@ def info(update: Update, context: CallbackContext):
 
 
     if user.id == OWNER_ID:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">God</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">God</a>'
+
     elif user.id in DEV_USERS:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Hero Union</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Hero Union</a>'
+
     elif user.id in SUDO_USERS:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Royal</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Royal</a>'
+
     elif user.id in SUPPORT_USERS:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Sakura</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Sakura</a>'
+
     elif user.id in SARDEGNA_USERS:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Sardegna</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Sardegna</a>'
+
     elif user.id in WHITELIST_USERS:
-            text += f'\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Neptunia</a>'
+        text += '\\nThe Nation level of this person is <a href="https://t.me/lyndarobot?start=nations">Neptunia</a>'
+
 
 
     text += "\n"

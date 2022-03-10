@@ -145,7 +145,7 @@ def del_blacklist(update: Update, _):
 
     chat_filters = sql.get_chat_blacklist(chat.id)
     for trigger in chat_filters:
-        pattern = r"( |^|[^\w])" + re.escape(trigger) + r"( |$|[^\w])"
+        pattern = f"( |^|[^\\w]){re.escape(trigger)}( |$|[^\\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
             try:
                 message.delete()

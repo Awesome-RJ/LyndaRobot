@@ -122,8 +122,7 @@ def warn(
 def button(update: Update, _) -> str:
     query: Optional[CallbackQuery] = update.callback_query
     user: Optional[User] = update.effective_user
-    match = re.match(r"rm_warn\((.+?)\)", query.data)
-    if match:
+    if match := re.match(r"rm_warn\((.+?)\)", query.data):
         user_id = match.group(1)
         chat: Optional[Chat] = update.effective_chat
         res = sql.remove_warn(user_id, chat.id)
@@ -181,9 +180,7 @@ def reset_warns(update: Update, context: CallbackContext) -> str:
     chat: Optional[Chat] = update.effective_chat
     user: Optional[User] = update.effective_user
 
-    user_id = extract_user(message, args)
-
-    if user_id:
+    if user_id := extract_user(message, args):
         sql.reset_warns(user_id, chat.id)
         message.reply_text("Warns have been reset!")
         warned = chat.get_member(user_id).user
@@ -238,14 +235,13 @@ def add_warn_filter(update: Update, _):
 
     extracted = split_quotes(args[1])
 
-    if len(extracted) >= 2:
-        # set trigger -> lower, so as to avoid adding duplicate filters with
-        # different cases
-        keyword = extracted[0].lower()
-        content = extracted[1]
-
-    else:
+    if len(extracted) < 2:
         return
+
+    # set trigger -> lower, so as to avoid adding duplicate filters with
+    # different cases
+    keyword = extracted[0].lower()
+    content = extracted[1]
 
     # Note: perhaps handlers can be removed somehow using sql.get_chat_filters
     for handler in dispatcher.handlers.get(WARN_HANDLER_GROUP, []):
@@ -329,7 +325,7 @@ def reply_filter(update: Update, _) -> str:
         return ""
 
     for keyword in chat_warn_filters:
-        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
+        pattern = f"( |^|[^\\w]){re.escape(keyword)}( |$|[^\\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
             user: Optional[User] = update.effective_user
             warn_filter = sql.get_warn_filter(chat.id, keyword)

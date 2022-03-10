@@ -71,11 +71,11 @@ def connection_chat(update: Update, context: CallbackContext):
 
     if conn:
         chat_name = dispatcher.bot.getChat(conn).title
-    else:
-        if msg.chat.type != "private":
-            return
+    elif msg.chat.type == "private":
         chat_name = chat.title
 
+    else:
+        return
     if conn:
         message = "You are currently connected with {}.\n".format(chat_name)
     else:
@@ -149,8 +149,9 @@ def connect_chat(update: Update, context: CallbackContext):
                         callback_data="connect_clear")]
             else:
                 buttons = []
-            conn = connected(context.bot, update, chat, user.id, need_admin=False)
-            if conn:
+            if conn := connected(
+                context.bot, update, chat, user.id, need_admin=False
+            ):
                 connectedchat = dispatcher.bot.getChat(conn)
                 text = "You are connected to *{}* (`{}`)".format(
                     connectedchat.title, conn)
@@ -213,9 +214,7 @@ def connect_chat(update: Update, context: CallbackContext):
                         f"You have connected with *{chat_name}*."
                         f" Use /connection for see current available commands.",
                         parse_mode="markdown")
-                except BadRequest:
-                    pass
-                except Unauthorized:
+                except (BadRequest, Unauthorized):
                     pass
             else:
                 send_message(msg, "Connection failed!")
@@ -249,35 +248,30 @@ def connected(context: CallbackContext, update, chat, user_id, need_admin=True):
     if spam is True:
         return
 
-    if chat.type == chat.PRIVATE and sql.get_connected_chat(user_id):
+    if chat.type != chat.PRIVATE or not sql.get_connected_chat(user_id):
+        return False
+    conn_id = sql.get_connected_chat(user_id).chat_id
+    getstatusadmin = context.bot.get_chat_member(conn_id, msg.from_user.id)
+    isadmin = getstatusadmin.status in ADMIN_STATUS
+    ismember = getstatusadmin.status in MEMBER_STAUS
+    isallow = sql.allow_connect_to_chat(conn_id)
 
-        conn_id = sql.get_connected_chat(user_id).chat_id
-        getstatusadmin = context.bot.get_chat_member(conn_id, msg.from_user.id)
-        isadmin = getstatusadmin.status in ADMIN_STATUS
-        ismember = getstatusadmin.status in MEMBER_STAUS
-        isallow = sql.allow_connect_to_chat(conn_id)
-
-        if isadmin or (
+    if isadmin or (
             isallow and ismember) or (
             user.id in SUDO_USERS) or (
                 user.id in DEV_USERS):
-            if need_admin is True:
-                if getstatusadmin.status in ADMIN_STATUS or user_id in SUDO_USERS or user.id in DEV_USERS:
-                    return conn_id
-                else:
-                    send_message(
-                        msg, "You must be an admin in the connected group!")
-                    raise Exception("Not admin!")
-            else:
-                return conn_id
-        else:
-            send_message(
-                msg, "The group changed the connection rights or you are no longer an admin.\n"
-                "I've disconnected you.")
-            disconnect_chat(context.bot, update)
-            raise Exception("Not admin!")
+        if need_admin is not True:
+            return conn_id
+        if getstatusadmin.status in ADMIN_STATUS or user_id in SUDO_USERS or user.id in DEV_USERS:
+            return conn_id
+        send_message(
+            msg, "You must be an admin in the connected group!")
     else:
-        return False
+        send_message(
+            msg, "The group changed the connection rights or you are no longer an admin.\n"
+            "I've disconnected you.")
+        disconnect_chat(context.bot, update)
+    raise Exception("Not admin!")
 
 
 @run_async

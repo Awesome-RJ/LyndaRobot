@@ -27,7 +27,7 @@ def load(update: Update, _):
         parse_mode=ParseMode.HTML)
 
     try:
-        imported_module = importlib.import_module("lynda.modules." + text)
+        imported_module = importlib.import_module(f"lynda.modules.{text}")
     except Exception:
         load_messasge.edit_text("Does that module even exist?")
         return
@@ -93,7 +93,7 @@ def unload(update: Update, _):
         parse_mode=ParseMode.HTML)
 
     try:
-        imported_module = importlib.import_module("lynda.modules." + text)
+        imported_module = importlib.import_module(f"lynda.modules.{text}")
     except Exception:
         unload_messasge.edit_text("Does that module even exist?")
         return

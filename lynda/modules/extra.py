@@ -49,9 +49,9 @@ def app(update: Update, _):
             'div', 'Vpfmgd').findNext(
             'div', 'uzcko').img['data-src']
         app_details = "<a href='" + app_icon + "'>📲&#8203;</a>"
-        app_details += " <b>" + app_name + "</b>"
+        app_details += f" <b>{app_name}</b>"
         app_details += "\n\n<code>Developer :</code> <a href='" + app_dev_link + "'>"
-        app_details += app_dev + "</a>"
+        app_details += f'{app_dev}</a>'
         app_details += "\n<code>Rating :</code> " + app_rating.replace(
             "Rated ", "⭐️ ").replace(" out of ", "/").replace(
                 " stars", "", 1).replace(" stars", "⭐️").replace("five", "5")
@@ -115,8 +115,7 @@ def reverse(update: Update, context: CallbackContext):
     rtmid = msg.message_id
     imagename = "okgoogle.png"
 
-    reply = msg.reply_to_message
-    if reply:
+    if reply := msg.reply_to_message:
         if reply.sticker:
             file_id = reply.sticker.file_id
         elif reply.photo:
@@ -154,12 +153,12 @@ def reverse(update: Update, context: CallbackContext):
         try:
             urllib.request.urlretrieve(img_link, imagename)
         except HTTPError as HE:
-            if HE.reason == 'Not Found':
-                msg.reply_text("Image not found.")
-                return
-            elif HE.reason == 'Forbidden':
+            if HE.reason == 'Forbidden':
                 msg.reply_text(
                     "Couldn't access the provided link, The website might have blocked accessing to the website by bot or the website does not existed.")
+                return
+            elif HE.reason == 'Not Found':
+                msg.reply_text("Image not found.")
                 return
         except URLError as UE:
             msg.reply_text(f"{UE.reason}")
@@ -200,7 +199,7 @@ def reverse(update: Update, context: CallbackContext):
             return
 
         os.remove(imagename)
-        match = ParseSauce(fetchUrl + "&hl=en")
+        match = ParseSauce(f'{fetchUrl}&hl=en')
         guess = match['best_guess']
         if match['override'] and match['override'] != '':
             imgspage = match['override']
@@ -379,15 +378,13 @@ def wall(update: Update, context: CallbackContext):
     args = context.args
     msg = update.effective_message
     msg_id = update.effective_message.message_id
-    query = " ".join(args)
-    if query:
+    if query := " ".join(args):
         caption = query
         term = query.replace(" ", "%20")
         json_rep = requests.get(
             f"https://wall.alphacoders.com/api2.0/get.php?auth={WALL_API}&method=search&term={term}").json()
         if json_rep.get("success"):
-            wallpapers = json_rep.get("wallpapers")
-            if wallpapers:
+            if wallpapers := json_rep.get("wallpapers"):
                 index = randint(0, len(wallpapers) - 1)  # Choose random index
                 wallpaper = wallpapers[index]
                 wallpaper = wallpaper.get("url_image")

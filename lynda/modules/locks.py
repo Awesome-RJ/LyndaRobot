@@ -316,8 +316,10 @@ def format_lines(lst, spaces):
 
 
 def repl(lst, index, true_val, false_val):
-    return [t[0:index] + [true_val if t[index] else false_val] +
-            t[index + 1:len(t)] for t in lst]
+    return [
+        (t[:index] + [true_val if t[index] else false_val] + t[index + 1 :])
+        for t in lst
+    ]
 
 
 def build_lock_message(chat_id):

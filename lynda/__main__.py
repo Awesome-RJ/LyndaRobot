@@ -49,7 +49,13 @@ information about how to donate!
 will redirect you to pm, with all that chat's settings.
 
 {}
-""".format(dispatcher.bot.first_name, "" if not ALLOW_EXCL else "\nAll commands can either be used with `/` or `!`.\n")
+""".format(
+    dispatcher.bot.first_name,
+    "\nAll commands can either be used with `/` or `!`.\n"
+    if ALLOW_EXCL
+    else "",
+)
+
 
 LYNDA_IMG = "https://telegra.ph/file/aa808a7a26a011cdf613e.jpg"
 
@@ -70,7 +76,7 @@ CHAT_SETTINGS = {}
 USER_SETTINGS = {}
 
 for module_name in ALL_MODULES:
-    imported_module = importlib.import_module("lynda.modules." + module_name)
+    imported_module = importlib.import_module(f"lynda.modules.{module_name}")
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
@@ -278,24 +284,23 @@ def send_settings(chat_id, user_id, user=False):
                 "Seems like there aren't any user specific settings available :'(",
                 parse_mode=ParseMode.MARKDOWN)
 
+    elif CHAT_SETTINGS:
+        chat_name = dispatcher.bot.getChat(chat_id).title
+        dispatcher.bot.send_message(
+            user_id,
+            text="Which module would you like to check {}'s settings for?".format(chat_name),
+            reply_markup=InlineKeyboardMarkup(
+                paginate_modules(
+                    0,
+                    CHAT_SETTINGS,
+                    "stngs",
+                    chat=chat_id)))
     else:
-        if CHAT_SETTINGS:
-            chat_name = dispatcher.bot.getChat(chat_id).title
-            dispatcher.bot.send_message(
-                user_id,
-                text="Which module would you like to check {}'s settings for?".format(chat_name),
-                reply_markup=InlineKeyboardMarkup(
-                    paginate_modules(
-                        0,
-                        CHAT_SETTINGS,
-                        "stngs",
-                        chat=chat_id)))
-        else:
-            dispatcher.bot.send_message(
-                user_id,
-                "Seems like there aren't any chat settings available :'(\nSend this "
-                "in a group chat you're admin in to find its current settings!",
-                parse_mode=ParseMode.MARKDOWN)
+        dispatcher.bot.send_message(
+            user_id,
+            "Seems like there aren't any chat settings available :'(\nSend this "
+            "in a group chat you're admin in to find its current settings!",
+            parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -358,11 +363,11 @@ def settings_button(update: Update, context: CallbackContext):
         context.bot.answer_callback_query(query.id)
         query.message.delete()
     except BadRequest as excp:
-        if (
-            excp.message != "Message is not modified"
-            and excp.message != "Query_id_invalid"
-            and excp.message != "Message can't be deleted"
-        ):
+        if excp.message not in [
+            "Message is not modified",
+            "Query_id_invalid",
+            "Message can't be deleted",
+        ]:
             LOGGER.exception(
                 "Exception in settings buttons. %s", str(
                     query.data))
@@ -377,19 +382,18 @@ def get_settings(update: Update, context: CallbackContext):
     msg.text.split(None, 1)
 
     # ONLY send settings in PM
-    if chat.type != chat.PRIVATE:
-        if is_user_admin(chat, user.id):
-            text = "Click here to get this chat's settings, as well as yours."
-            msg.reply_text(text,
-                        reply_markup=InlineKeyboardMarkup(
-                            [[InlineKeyboardButton(text="Settings",
-                                                    url="t.me/{}?start=stngs_{}".format(
-                                                        context.bot.username, chat.id))]]))
-        else:
-            text = "Click here to check your settings."
-
-    else:
+    if chat.type == chat.PRIVATE:
         send_settings(chat.id, user.id, True)
+
+    elif is_user_admin(chat, user.id):
+        text = "Click here to get this chat's settings, as well as yours."
+        msg.reply_text(text,
+                    reply_markup=InlineKeyboardMarkup(
+                        [[InlineKeyboardButton(text="Settings",
+                                                url="t.me/{}?start=stngs_{}".format(
+                                                    context.bot.username, chat.id))]]))
+    else:
+        text = "Click here to check your settings."
 
 
 @run_async
@@ -480,11 +484,11 @@ def main():
     else:
         LOGGER.info("Using long polling.")
         updater.start_polling(timeout=15, read_latency=4)
-    if len(argv) not in (1, 3, 4):
-        telethn.disconnect()
-    else:
+    if len(argv) in {1, 3, 4}:
         telethn.run_until_disconnected()
 
+    else:
+        telethn.disconnect()
     updater.idle()
 
 
